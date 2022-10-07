@@ -44,51 +44,51 @@ const bp = __importStar(require("body-parser"));
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
 dotenv.config();
-const connection = mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
+mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
 const ShortenedUrlModel = new mongoose.Schema({ slug: String, url: String });
-const ShortenedUrl = mongoose.model("Url", ShortenedUrlModel);
-const keys = { foo: "bar" };
-app.get("/", function (req, res) {
+const ShortenedUrl = mongoose.model('Url', ShortenedUrlModel);
+const keys = { foo: 'bar' };
+app.get('/', function (req, res) {
     console.log(req.query);
-    res.send({ status: "OK", response: "Hi from ReFasm.ga api" });
+    res.send({ status: 'OK', response: 'Hi from ReFasm.ga api' });
 });
-app.post("/create", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    let headers = req.headers;
-    let body = req.body;
+app.post('/create', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const headers = req.headers;
+    const body = req.body;
     const token = headers.authorization;
-    if (!body.hasOwnProperty("url")) {
-        return res.send({ status: "ERROR", response: "No url provided" });
+    if (!body.hasOwnProperty('url')) {
+        return res.send({ status: 'ERROR', response: 'No url provided' });
     }
-    if (!body.hasOwnProperty("slug")) {
+    if (!body.hasOwnProperty('slug')) {
         var slug = (Math.random() + 1).toString(36).substring(6);
     }
     else {
         var slug = body.slug;
     }
-    let url = body.url;
+    const url = body.url;
     if (!token) {
-        return res.send({ status: "ERROR", response: "No authorization token" });
+        return res.send({ status: 'ERROR', response: 'No authorization token' });
     }
     if (!keys[token]) {
         return res.send({
-            status: "ERROR",
-            response: "Invalid Authorization Token",
+            status: 'ERROR',
+            response: 'Invalid Authorization Token',
         });
     }
     const return_value = yield ShortenedUrl.find({ slug: slug });
     if (return_value.length == 0) {
         const shortened = new ShortenedUrl({ slug: slug, url: url });
-        shortened.save().then((value) => {
-            console.log("Saved!");
+        shortened.save().then(() => {
+            console.log('Saved!');
         });
         return res.send({
-            status: "OK",
-            response: "shortened",
-            link: "refasm.ga/" + slug,
+            status: 'OK',
+            response: 'shortened',
+            link: 'refasm.ga/' + slug,
         });
     }
     else {
-        return res.send({ status: "ERROR", response: "slug already in use" });
+        return res.send({ status: 'ERROR', response: 'slug already in use' });
     }
 }));
 app.listen(port, () => {
