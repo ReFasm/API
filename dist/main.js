@@ -22,6 +22,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -30,20 +39,20 @@ const express_1 = __importDefault(require("express"));
 const port = 3000;
 const app = (0, express_1.default)();
 const mongoose = __importStar(require("mongoose"));
+const dotenv = __importStar(require("dotenv"));
 const bp = __importStar(require("body-parser"));
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
-mongoose.connect('mongodb://admin:AMOGUS@192.168.0.200:27017/ReFasm?authSource=admin&readPreference=primary&ssl=false');
+dotenv.config();
+const connection = mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
 const ShortenedUrlModel = new mongoose.Schema({ slug: String, url: String });
 const ShortenedUrl = mongoose.model('Url', ShortenedUrlModel);
-const shit = new ShortenedUrl({ slug: 'shit', url: 'https://example.com' });
-shit.save().then((value) => console.log('shit be like: ', value));
 const keys = { "foo": "bar" };
 app.get("/", function (req, res) {
     console.log(req.query);
     res.send({ "status": "OK", "response": "Hi from ReFasm.ga api" });
 });
-app.post("/create", (req, res) => {
+app.post("/create", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let headers = req.headers;
     let body = req.body;
     const token = headers.authorization;
@@ -63,8 +72,19 @@ app.post("/create", (req, res) => {
     if (!keys[token]) {
         return res.send({ "status": "ERROR", "response": "Invalid Authorization Token" });
     }
-    return res.send({ "status": "OK", "response": "shortened", "link": "refasm.ga/", slug });
-});
+    const return_value = yield ShortenedUrl.find({ slug: slug });
+    if (return_value.length == 0) {
+        const shortened = new ShortenedUrl({ slug: slug, url: url });
+        shortened.save()
+            .then((value) => {
+            console.log("Saved!");
+        });
+        return res.send({ "status": "OK", "response": "shortened", "link": "refasm.ga/" + slug });
+    }
+    else {
+        return res.send({ "status": "ERROR", "response": "slug already in use" });
+    }
+}));
 app.listen(port, () => {
     console.log(`ReFasm API listening on ${port}`);
 });

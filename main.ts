@@ -7,7 +7,7 @@ import * as bp  from 'body-parser';
 app.use(bp.json())
 app.use(bp.urlencoded({ extended: true }))
 
-dotenv.config(".env")
+dotenv.config()
 
 const connection = mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
 const ShortenedUrlModel = new mongoose.Schema({ slug: String, url: String })
