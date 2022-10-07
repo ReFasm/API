@@ -9,4 +9,4 @@
     - url: (link to shorten)
     - slug: (optional, cutom slug)
     
- Not working as of now just a PoC
+ Not working as of now, just a PoC
