@@ -43,6 +43,8 @@ app.post('/create', async (req, res) => {
             response: 'Invalid Authorization Token',
         })
     }
+    console.log(slug)
+    console.log(body.slug)
     const return_value = await ShortenedUrl.find({ slug: slug })
     if (return_value.length == 0) {
         const shortened = new ShortenedUrl({ slug: slug, url: url })
@@ -57,6 +59,21 @@ app.post('/create', async (req, res) => {
     } else {
         return res.send({ status: 'ERROR', response: 'slug already in use' })
     }
+})
+
+app.get('/url/{url}', (req, res) => {
+    const headers = req.headers
+    const token = headers.authorization
+    if (!token) {
+        return res.send({ status: 'ERROR', response: 'No authorization token' })
+    }
+    if (!keys[token]) {
+        return res.send({
+            status: 'ERROR',
+            response: 'Invalid Authorization Token',
+        })
+    }
+    res.send("Amogus")
 })
 
 app.listen(port, () => {
