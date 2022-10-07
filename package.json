@@ -4,7 +4,7 @@
   "description": "API to connect with MongoDB for ReFasm.ga",
   "main": "dist/main.js",
   "scripts": {
-    "watch": "tsc --watch",
+    "watch": "tsc --watch ",
     "build": "tsc",
     "start": "node dist/main.js",
     "dev": "nodemon --inspect ./dist/main.js",

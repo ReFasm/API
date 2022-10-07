@@ -61,7 +61,7 @@ app.post('/create', async (req, res) => {
     }
 })
 
-app.get('/url/{url}', (req, res) => {
+app.get('/url/:url', async  (req, res) => {
     const headers = req.headers
     const token = headers.authorization
     if (!token) {
@@ -73,7 +73,10 @@ app.get('/url/{url}', (req, res) => {
             response: 'Invalid Authorization Token',
         })
     }
-    res.send("Amogus")
+    res.setHeader("x-powered-by", "ReFasm.ga - Express")
+    const item = await ShortenedUrl.findOne({"slug": req.params.url})
+    res.send({...item["_doc"]})
+    
 })
 
 app.listen(port, () => {
