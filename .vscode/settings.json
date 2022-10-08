@@ -1,4 +1,4 @@
 {
-    "nuxt.isNuxtApp": false,
-    "diffEditor.codeLens": true
+  "nuxt.isNuxtApp": false,
+  "diffEditor.codeLens": true
 }
