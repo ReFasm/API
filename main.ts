@@ -13,7 +13,7 @@ mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
 const ShortenedUrlModel = new mongoose.Schema({ slug: String, url: String });
 const ShortenedUrl = mongoose.model("Url", ShortenedUrlModel);
 
-const keys = { foo: "bar" };
+const keys = { foo: "bar" }; //s TODO: query from mongodb
 app.get("/", function (req, res) {
   console.log(req.query);
   res.send({ status: "OK", response: "Hi from ReFasm.ga api" });
