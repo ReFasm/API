@@ -4,7 +4,7 @@ version = 1
 name = "javascript"
 enabled = true
   [analyzers.meta] 
-  environment = ["node"]
+  environment = ["nodejs"]
 
 [[transformers]]
 name = "prettier"
