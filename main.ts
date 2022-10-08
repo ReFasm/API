@@ -6,7 +6,7 @@ import * as dotenv from "dotenv";
 import * as bp from "body-parser";
 app.use(bp.json());
 app.use(bp.urlencoded({ extended: true }));
-
+app.disable("x-powered-by");
 dotenv.config();
 
 mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
