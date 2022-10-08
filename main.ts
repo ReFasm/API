@@ -79,7 +79,7 @@ app.get("/v1/urls/:url", async (req, res) => {
       response: "Invalid Authorization Token",
     });
   }
-  
+
   const item = await ShortenedUrl.findOne({ slug: req.params.url });
   res.send({ ...item["_doc"] });
 });
@@ -88,7 +88,10 @@ app.get("/v1/urls", async (req, res) => {
   const headers = req.headers;
   const token = headers.authorization;
   if (!token) {
-    return res.send({ status: "ERROR", response: "No authorization token specified in Headers" });
+    return res.send({
+      status: "ERROR",
+      response: "No authorization token specified in Headers",
+    });
   }
   if (!keys[token]) {
     return res.send({
