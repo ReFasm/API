@@ -3,7 +3,7 @@ const port = 3000;
 const app = express();
 import * as mongoose from "mongoose";
 import * as dotenv from "dotenv";
-import * as bp from "body-parser";
+import { randomBytes } from "crypto"
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.disable("x-powered-by");
@@ -148,10 +148,14 @@ app.post("/internal/register", async (req, res) => {
   if (!(body.username && body.password)) {
     return res.send({ status: "ERROR", code: "Malformed body" });
   }
+  
+  let buf = randomBytes(16)
+  
   const user_body = {
+
     username: body.username,
     password: body.password,
-    apikey: (Math.random() + 1).toString(36).substring(2),
+    apikey: buf.toString("hex")
   };
 
   User.create(user_body);
