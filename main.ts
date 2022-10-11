@@ -26,7 +26,7 @@ const ShortenedUrlModel = new mongoose.Schema({
   url: String,
   owner: String,
   nsfw: Boolean,
-  password: String??Boolean,
+  password: String ?? Boolean,
 });
 const ShortenedUrl = mongoose.model("Url", ShortenedUrlModel);
 
