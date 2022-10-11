@@ -4,10 +4,21 @@ const app = express();
 import * as mongoose from "mongoose";
 import * as dotenv from "dotenv";
 import { randomBytes } from "crypto"
+import rateLimit from 'express-rate-limit'
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.disable("x-powered-by");
 dotenv.config();
+
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+})
+
+// Apply the rate limiting middleware to all requests
+app.use(limiter)
 
 mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
 const ShortenedUrlModel = new mongoose.Schema({
