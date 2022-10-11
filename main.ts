@@ -160,7 +160,7 @@ app.post("/internal/register", async (req, res) => {
     return res.send({ status: "ERROR", code: "Malformed body" });
   }
   
-  let buf = randomBytes(16)
+  const buf = randomBytes(16)
   
   const user_body = {
 
