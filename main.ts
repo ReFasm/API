@@ -25,6 +25,8 @@ const ShortenedUrlModel = new mongoose.Schema({
   slug: String,
   url: String,
   owner: String,
+  nsfw: Boolean,
+  password: String??Boolean,
 });
 const ShortenedUrl = mongoose.model("Url", ShortenedUrlModel);
 
@@ -42,7 +44,6 @@ result.forEach((value) => {
   keys[value.apikey] = [value.username, value.password];
 });
 app.get("/", function (req, res) {
-  console.log(req.query);
   res.send({ status: "OK", response: "Hi from ReFasm.ga api" });
 });
 
@@ -56,11 +57,12 @@ app.post("/v1/create", async (req, res) => {
   const headers = req.headers;
   const body = req.body;
   const token = headers.authorization;
-  console.log(token);
 
-  if (!body.hasOwnProperty("url")) {
-    return res.send({ status: "ERROR", response: "No url provided" });
+  if (!(body.hasOwnProperty("url") && body.hasOwnProperty("nsfw"))) {
+    return res.send({ status: "ERROR", response: "Malformed body" });
   }
+
+  const password: string | boolean = body.password || false;
 
   if (!body.hasOwnProperty("slug")) {
     var slug = (Math.random() + 1).toString(36).substring(6);
@@ -83,10 +85,10 @@ app.post("/v1/create", async (req, res) => {
       slug: slug,
       url: url,
       owner: keys[token][0],
+      nsfw: body.nsfw,
+      password: password,
     });
-    shortened.save().then(() => {
-      console.log("Saved!");
-    });
+    shortened.save();
     return res.send({
       status: "OK",
       response: "shortened",
@@ -143,8 +145,6 @@ app.get("/v1/urls", async (req, res) => {
   }
 
   const item = await ShortenedUrl.find({ owner: keys[token] });
-  console.log(item);
-
   await res.send(item);
 });
 app.post("/internal/register", (req, res) => {
@@ -170,6 +170,44 @@ app.post("/internal/register", (req, res) => {
 
   User.create(user_body);
   res.send(user_body);
+});
+
+app.patch("/v1/edit", async (req, res) => {
+  const result = await User.find().exec();
+
+  const keys = {};
+  result.forEach((value) => {
+    keys[value.apikey] = [value.username, value.password];
+  });
+
+  const headers = req.headers;
+  const body = req.body;
+
+  if (!headers.authorization) {
+    return res.send({ status: "ERROR", code: "Missing API secret" });
+  }
+
+  if (!keys[headers.authorization]) {
+    return res.send({
+      status: "ERROR",
+      response: "Invalid Authorization Token",
+    });
+  }
+  const resulting_url = await ShortenedUrl.findOne({
+    slug: headers.slug,
+  }).exec();
+  await ShortenedUrl.updateOne(
+    { slug: headers.slug },
+    {
+      slug: body.slug || resulting_url.slug,
+      nsfw: body.nsfw || resulting_url.nsfw,
+      password: body.password || resulting_url.password,
+    }
+  );
+  const updated_url = await ShortenedUrl.findOne({
+    slug: body.slug || headers.slug,
+  }).exec();
+  res.send({ status: "OK", response: { ...updated_url["_doc"] } });
 });
 
 app.listen(port, () => {
