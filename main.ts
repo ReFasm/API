@@ -147,7 +147,7 @@ app.get("/v1/urls", async (req, res) => {
 
   await res.send(item);
 });
-app.post("/internal/register", async (req, res) => {
+app.post("/internal/register", (req, res) => {
   var headers = req.headers;
   var body = req.body;
   if (!headers.authorization) {
