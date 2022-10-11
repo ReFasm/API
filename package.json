@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "API to connect with MongoDB for ReFasm.ga",
   "main": "dist/main.js",
+  "type": "module",
   "scripts": {
     "watch": "tsc --watch ",
     "build": "tsc",

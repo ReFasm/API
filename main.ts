@@ -4,8 +4,8 @@ const app = express();
 import * as mongoose from "mongoose";
 import * as dotenv from "dotenv";
 import * as bp from "body-parser";
-app.use(bp.json());
-app.use(bp.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.disable("x-powered-by");
 dotenv.config();
 
@@ -17,16 +17,35 @@ const ShortenedUrlModel = new mongoose.Schema({
 });
 const ShortenedUrl = mongoose.model("Url", ShortenedUrlModel);
 
-const keys = { foo: "starnumber12046" };
+const UserModel = new mongoose.Schema({
+  username: String,
+  apikey: String,
+  password: String,
+});
+const User = mongoose.model("User", UserModel);
+
+const result = await User.find().exec();
+
+const keys = {};
+result.forEach((value) => {
+  keys[value.apikey] = [value.username, value.password];
+});
 app.get("/", function (req, res) {
   console.log(req.query);
   res.send({ status: "OK", response: "Hi from ReFasm.ga api" });
 });
 
 app.post("/v1/create", async (req, res) => {
+  const result = await User.find().exec();
+
+  const keys = {};
+  result.forEach((value) => {
+    keys[value.apikey] = [value.username, value.password];
+  });
   const headers = req.headers;
   const body = req.body;
   const token = headers.authorization;
+  console.log(token);
 
   if (!body.hasOwnProperty("url")) {
     return res.send({ status: "ERROR", response: "No url provided" });
@@ -52,7 +71,7 @@ app.post("/v1/create", async (req, res) => {
     const shortened = new ShortenedUrl({
       slug: slug,
       url: url,
-      owner: keys[token],
+      owner: keys[token][0],
     });
     shortened.save().then(() => {
       console.log("Saved!");
@@ -68,6 +87,12 @@ app.post("/v1/create", async (req, res) => {
 });
 
 app.get("/v1/urls/:url", async (req, res) => {
+  const result = await User.find().exec();
+
+  const keys = {};
+  result.forEach((value) => {
+    keys[value.apikey] = [value.username, value.password];
+  });
   const headers = req.headers;
   const token = headers.authorization;
   if (!token) {
@@ -79,16 +104,25 @@ app.get("/v1/urls/:url", async (req, res) => {
       response: "Invalid Authorization Token",
     });
   }
-  
+
   const item = await ShortenedUrl.findOne({ slug: req.params.url });
   res.send({ ...item["_doc"] });
 });
 
 app.get("/v1/urls", async (req, res) => {
+  const result = await User.find().exec();
+
+  const keys = {};
+  result.forEach((value) => {
+    keys[value.apikey] = [value.username, value.password];
+  });
   const headers = req.headers;
   const token = headers.authorization;
   if (!token) {
-    return res.send({ status: "ERROR", response: "No authorization token specified in Headers" });
+    return res.send({
+      status: "ERROR",
+      response: "No authorization token specified in Headers",
+    });
   }
   if (!keys[token]) {
     return res.send({
@@ -101,6 +135,28 @@ app.get("/v1/urls", async (req, res) => {
   console.log(item);
 
   await res.send(item);
+});
+app.post("/internal/register", async (req, res) => {
+  var headers = req.headers;
+  var body = req.body;
+  if (!headers.authorization) {
+    return res.send({ status: "ERROR", code: "Missing API secret" });
+  }
+  if (headers.authorization !== process.env.API_SECRET) {
+    return res.send({ status: "ERROR", code: "Wrong API secret" });
+  }
+  if (!(body.username && body.password)) {
+    return res.send({ status: "ERROR", code: "Malformed body" });
+  }
+  const user_body = {
+    username: body.username,
+    password: body.password,
+    apikey: (Math.random() + 1).toString(36).substring(2),
+  };
+
+  User.create(user_body);
+  res.send(user_body);
+  
 });
 
 app.listen(port, () => {
