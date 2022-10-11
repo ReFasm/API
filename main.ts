@@ -156,7 +156,6 @@ app.post("/internal/register", async (req, res) => {
 
   User.create(user_body);
   res.send(user_body);
-  
 });
 
 app.listen(port, () => {
