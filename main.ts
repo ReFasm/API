@@ -21,23 +21,23 @@ const limiter = rateLimit({
 app.use(limiter);
 
 mongoose.connect(process.env.MONGODB_CONNECTION_STRING);
-const ShortenedUrlModel = new mongoose.Schema({
+const ShortenedUrlSchema = new mongoose.Schema({
   slug: String,
   url: String,
   owner: String,
   nsfw: Boolean,
   password: String ?? Boolean,
 });
-const ShortenedUrl = mongoose.model("Url", ShortenedUrlModel);
+const ShortenedUrlModel = mongoose.model("Url", ShortenedUrlSchema);
 
-const UserModel = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   username: String,
   apikey: String,
   password: String,
 });
-const User = mongoose.model("User", UserModel);
+const UserModel = mongoose.model("User", UserSchema);
 
-const result = await User.find().exec();
+const result = await UserModel.find().exec();
 
 const keys = {};
 result.forEach((value) => {
@@ -48,12 +48,12 @@ app.get("/", function (req, res) {
 });
 
 app.post("/v1/create", async (req, res) => {
-  const result = await User.find().exec();
+  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
 
   const keys = {};
-  result.forEach((value) => {
-    keys[value.apikey] = [value.username, value.password];
-  });
+  const value = result[0];
+
+  keys[value.apikey] = [value.username, value.password];
   const headers = req.headers;
   const body = req.body;
   const token = headers.authorization;
@@ -79,9 +79,9 @@ app.post("/v1/create", async (req, res) => {
       response: "Invalid Authorization Token",
     });
   }
-  const return_value = await ShortenedUrl.find({ slug: slug });
+  const return_value = await ShortenedUrlModel.find({ slug: slug });
   if (return_value.length == 0) {
-    const shortened = new ShortenedUrl({
+    const shortened = new ShortenedUrlModel({
       slug: slug,
       url: url,
       owner: keys[token][0],
@@ -100,13 +100,12 @@ app.post("/v1/create", async (req, res) => {
 });
 
 app.get("/v1/urls/:url", async (req, res) => {
-  
-  const result = await User.find().exec();
+  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
 
   const keys = {};
-  result.forEach((value) => {
-    keys[value.apikey] = [value.username, value.password];
-  });
+  const value = result[0];
+
+  keys[value.apikey] = [value.username, value.password];
   const headers = req.headers;
   const token = headers.authorization;
   if (!token) {
@@ -118,18 +117,18 @@ app.get("/v1/urls/:url", async (req, res) => {
       response: "Invalid Authorization Token",
     });
   }
-  
-  const item = await ShortenedUrl.findOne({ slug: req.params.url });
+
+  const item = await ShortenedUrlModel.findOne({ slug: req.params.url });
   res.send({ ...item["_doc"] });
 });
 
 app.get("/v1/urls", async (req, res) => {
-  const result = await User.find().exec();
+  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
 
   const keys = {};
-  result.forEach((value) => {
-    keys[value.apikey] = [value.username, value.password];
-  });
+  const value = result[0];
+
+  keys[value.apikey] = [value.username, value.password];
   const headers = req.headers;
   const token = headers.authorization;
   if (!token) {
@@ -145,11 +144,11 @@ app.get("/v1/urls", async (req, res) => {
     });
   }
 
-  const item = await ShortenedUrl.find({ owner: keys[token] });
+  const item = await ShortenedUrlModel.find({ owner: keys[token] });
   await res.send(item);
 });
 app.post("/internal/register", async (req, res) => {
-  const result = await User.find().exec();
+  const result = await UserModel.find().exec();
   var headers = req.headers;
   var body = req.body;
   if (!headers.authorization) {
@@ -161,18 +160,19 @@ app.post("/internal/register", async (req, res) => {
   if (!(body.username && body.password)) {
     return res.send({ status: "ERROR", code: "Malformed body" });
   }
-  let exited = false
+  let exited = false;
   result.forEach((value) => {
     if (body.username == value.username) {
-      if(exited) {
-        return
+      if (exited) {
+        return;
       }
-      exited = true
-      return res.send({ status: "ERROR", code: "Username already taken" })
+      exited = true;
+      return res.send({ status: "ERROR", code: "Username already taken" });
     }
-    
   });
-  if (exited) {return}
+  if (exited) {
+    return;
+  }
   const buf = randomBytes(16);
 
   const user_body = {
@@ -181,17 +181,17 @@ app.post("/internal/register", async (req, res) => {
     apikey: buf.toString("hex"),
   };
 
-  User.create(user_body);
+  UserModel.create(user_body);
   res.send(user_body);
 });
 
 app.patch("/v1/edit", async (req, res) => {
-  const result = await User.find().exec();
+  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
 
   const keys = {};
-  result.forEach((value) => {
-    keys[value.apikey] = [value.username, value.password];
-  });
+  const value = result[0];
+
+  keys[value.apikey] = [value.username, value.password];
 
   const headers = req.headers;
   const body = req.body;
@@ -206,13 +206,13 @@ app.patch("/v1/edit", async (req, res) => {
       response: "Invalid Authorization Token",
     });
   }
-  const resulting_url = await ShortenedUrl.findOne({
+  const resulting_url = await ShortenedUrlModel.findOne({
     slug: headers.slug,
   }).exec();
   if (!resulting_url) {
-    return res.send({status:"ERROR", response:"Slug not found!"})
+    return res.send({ status: "ERROR", response: "Slug not found!" });
   }
-  await ShortenedUrl.updateOne(
+  await ShortenedUrlModel.updateOne(
     { slug: headers.slug },
     {
       slug: body.slug || resulting_url.slug,
@@ -220,37 +220,35 @@ app.patch("/v1/edit", async (req, res) => {
       password: body.password || resulting_url.password,
     }
   );
-  const return_value = await ShortenedUrl.find({ slug: body.slug });
+  const return_value = await ShortenedUrlModel.find({ slug: body.slug });
   if (return_value.length == 0) {
-    const updated_url = await ShortenedUrl.findOne({
+    const updated_url = await ShortenedUrlModel.findOne({
       slug: body.slug || headers.slug,
     }).exec();
     res.send({ status: "OK", response: { ...updated_url["_doc"] } });
-    
   } else {
     return res.send({ status: "ERROR", response: "slug already in use" });
   }
-  
 });
 
 app.delete("/v1/delete", async (req, res) => {
-  const result = await User.find().exec();
+  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
 
   const keys = {};
-  result.forEach((value) => {
-    keys[value.apikey] = [value.username, value.password];
-  });
+  const value = result[0];
 
-  const urlinfo = await ShortenedUrl.findOne({slug: req.body.slug}).exec()
+  keys[value.apikey] = [value.username, value.password];
+
+  const urlinfo = await ShortenedUrlModel.findOne({ slug: req.body.slug }).exec();
   if (!urlinfo) {
-    return res.send({status:"ERROR", response:"Slug not found!"})
+    return res.send({ status: "ERROR", response: "Slug not found!" });
   }
   if (urlinfo.owner != keys[req.headers.authorization][0]) {
-    return res.send({status:"ERROR", response:"You don't own this slug!"})
+    return res.send({ status: "ERROR", response: "You don't own this slug!" });
   }
-  await ShortenedUrl.findOneAndDelete({slug: req.body["slug"]})
-  res.send({status:"OK", response:"Deleted succesfully"})
-})
+  await ShortenedUrlModel.findOneAndDelete({ slug: req.body["slug"] });
+  res.send({ status: "OK", response: "Deleted succesfully" });
+});
 
 app.listen(port, () => {
   console.log(`ReFasm API listening on ${port}`);
