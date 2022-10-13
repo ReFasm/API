@@ -48,7 +48,9 @@ app.get("/", function (req, res) {
 });
 
 app.post("/v1/create", async (req, res) => {
-  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
+  const result = await UserModel.find({
+    apikey: req.headers.authorization,
+  }).exec();
 
   const keys = {};
   const value = result[0];
@@ -100,7 +102,9 @@ app.post("/v1/create", async (req, res) => {
 });
 
 app.get("/v1/urls/:url", async (req, res) => {
-  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
+  const result = await UserModel.find({
+    apikey: req.headers.authorization,
+  }).exec();
 
   const keys = {};
   const value = result[0];
@@ -123,7 +127,9 @@ app.get("/v1/urls/:url", async (req, res) => {
 });
 
 app.get("/v1/urls", async (req, res) => {
-  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
+  const result = await UserModel.find({
+    apikey: req.headers.authorization,
+  }).exec();
 
   const keys = {};
   const value = result[0];
@@ -186,7 +192,9 @@ app.post("/internal/register", async (req, res) => {
 });
 
 app.patch("/v1/edit", async (req, res) => {
-  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
+  const result = await UserModel.find({
+    apikey: req.headers.authorization,
+  }).exec();
 
   const keys = {};
   const value = result[0];
@@ -232,14 +240,18 @@ app.patch("/v1/edit", async (req, res) => {
 });
 
 app.delete("/v1/delete", async (req, res) => {
-  const result = await UserModel.find({ apikey: req.headers.authorization }).exec();
+  const result = await UserModel.find({
+    apikey: req.headers.authorization,
+  }).exec();
 
   const keys = {};
   const value = result[0];
 
   keys[value.apikey] = [value.username, value.password];
 
-  const urlinfo = await ShortenedUrlModel.findOne({ slug: req.body.slug }).exec();
+  const urlinfo = await ShortenedUrlModel.findOne({
+    slug: req.body.slug,
+  }).exec();
   if (!urlinfo) {
     return res.send({ status: "ERROR", response: "Slug not found!" });
   }
