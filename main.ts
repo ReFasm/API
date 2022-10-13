@@ -100,6 +100,7 @@ app.post("/v1/create", async (req, res) => {
 });
 
 app.get("/v1/urls/:url", async (req, res) => {
+  // TODO: add user Authorization validation on query
   const result = await User.find().exec();
 
   const keys = {};
@@ -117,7 +118,7 @@ app.get("/v1/urls/:url", async (req, res) => {
       response: "Invalid Authorization Token",
     });
   }
-
+  
   const item = await ShortenedUrl.findOne({ slug: req.params.url });
   res.send({ ...item["_doc"] });
 });
@@ -148,6 +149,7 @@ app.get("/v1/urls", async (req, res) => {
   await res.send(item);
 });
 app.post("/internal/register", (req, res) => {
+  //TODO: check if username does not exist before creating a new one
   var headers = req.headers;
   var body = req.body;
   if (!headers.authorization) {
@@ -173,6 +175,7 @@ app.post("/internal/register", (req, res) => {
 });
 
 app.patch("/v1/edit", async (req, res) => {
+  // BUG: might not respond in case of a nonexisting value
   const result = await User.find().exec();
 
   const keys = {};
@@ -204,11 +207,25 @@ app.patch("/v1/edit", async (req, res) => {
       password: body.password || resulting_url.password,
     }
   );
-  const updated_url = await ShortenedUrl.findOne({
-    slug: body.slug || headers.slug,
-  }).exec();
-  res.send({ status: "OK", response: { ...updated_url["_doc"] } });
+  const return_value = await ShortenedUrl.find({ slug: body.slug });
+  if (return_value.length == 0) {
+    const updated_url = await ShortenedUrl.findOne({
+      slug: body.slug || headers.slug,
+    }).exec();
+    res.send({ status: "OK", response: { ...updated_url["_doc"] } });
+    
+  } else {
+    return res.send({ status: "ERROR", response: "slug already in use" });
+  }
+  
 });
+
+app.delete("/v1/delete", async (req, res) => {
+  //TODO: validate user token before deleting
+  //BUG: might bug when nonexisting
+  ShortenedUrl.deleteOne({slug: req.body["slug"]})
+  res.send({status:"OK", response:"Deleted succesfully"})
+})
 
 app.listen(port, () => {
   console.log(`ReFasm API listening on ${port}`);
