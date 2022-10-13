@@ -118,7 +118,7 @@ app.get("/v1/urls/:url", async (req, res) => {
       response: "Invalid Authorization Token",
     });
   }
-  
+
   const item = await ShortenedUrl.findOne({ slug: req.params.url });
   res.send({ ...item["_doc"] });
 });
@@ -213,19 +213,17 @@ app.patch("/v1/edit", async (req, res) => {
       slug: body.slug || headers.slug,
     }).exec();
     res.send({ status: "OK", response: { ...updated_url["_doc"] } });
-    
   } else {
     return res.send({ status: "ERROR", response: "slug already in use" });
   }
-  
 });
 
 app.delete("/v1/delete", async (req, res) => {
   //TODO: validate user token before deleting
   //BUG: might bug when nonexisting
-  ShortenedUrl.deleteOne({slug: req.body["slug"]})
-  res.send({status:"OK", response:"Deleted succesfully"})
-})
+  ShortenedUrl.deleteOne({ slug: req.body["slug"] });
+  res.send({ status: "OK", response: "Deleted succesfully" });
+});
 
 app.listen(port, () => {
   console.log(`ReFasm API listening on ${port}`);
