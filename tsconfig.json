@@ -8,5 +8,8 @@
         "target": "es2022",
         "skipLibCheck": true,
         "strict": false
-    }
+    },
+    "include": [
+        "src"
+    ]
 }
