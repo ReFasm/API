@@ -100,7 +100,6 @@ app.post("/v1/create", async (req, res) => {
 });
 
 app.get("/v1/urls/:url", async (req, res) => {
-  
   const result = await User.find().exec();
 
   const keys = {};
@@ -118,7 +117,7 @@ app.get("/v1/urls/:url", async (req, res) => {
       response: "Invalid Authorization Token",
     });
   }
-  
+
   const item = await ShortenedUrl.findOne({ slug: req.params.url });
   res.send({ ...item["_doc"] });
 });
@@ -161,18 +160,19 @@ app.post("/internal/register", async (req, res) => {
   if (!(body.username && body.password)) {
     return res.send({ status: "ERROR", code: "Malformed body" });
   }
-  let exited = false
+  let exited = false;
   result.forEach((value) => {
     if (body.username == value.username) {
-      if(exited) {
-        return
+      if (exited) {
+        return;
       }
-      exited = true
-      return res.send({ status: "ERROR", code: "Username already taken" })
+      exited = true;
+      return res.send({ status: "ERROR", code: "Username already taken" });
     }
-    
   });
-  if (exited) {return}
+  if (exited) {
+    return;
+  }
   const buf = randomBytes(16);
 
   const user_body = {
@@ -210,7 +210,7 @@ app.patch("/v1/edit", async (req, res) => {
     slug: headers.slug,
   }).exec();
   if (!resulting_url) {
-    return res.send({status:"ERROR", response:"Slug not found!"})
+    return res.send({ status: "ERROR", response: "Slug not found!" });
   }
   await ShortenedUrl.updateOne(
     { slug: headers.slug },
@@ -226,11 +226,9 @@ app.patch("/v1/edit", async (req, res) => {
       slug: body.slug || headers.slug,
     }).exec();
     res.send({ status: "OK", response: { ...updated_url["_doc"] } });
-    
   } else {
     return res.send({ status: "ERROR", response: "slug already in use" });
   }
-  
 });
 
 app.delete("/v1/delete", async (req, res) => {
@@ -241,16 +239,16 @@ app.delete("/v1/delete", async (req, res) => {
     keys[value.apikey] = [value.username, value.password];
   });
 
-  const urlinfo = await ShortenedUrl.findOne({slug: req.body.slug}).exec()
+  const urlinfo = await ShortenedUrl.findOne({ slug: req.body.slug }).exec();
   if (!urlinfo) {
-    return res.send({status:"ERROR", response:"Slug not found!"})
+    return res.send({ status: "ERROR", response: "Slug not found!" });
   }
   if (urlinfo.owner != keys[req.headers.authorization][0]) {
-    return res.send({status:"ERROR", response:"You don't own this slug!"})
+    return res.send({ status: "ERROR", response: "You don't own this slug!" });
   }
-  await ShortenedUrl.findOneAndDelete({slug: req.body["slug"]})
-  res.send({status:"OK", response:"Deleted succesfully"})
-})
+  await ShortenedUrl.findOneAndDelete({ slug: req.body["slug"] });
+  res.send({ status: "OK", response: "Deleted succesfully" });
+});
 
 app.listen(port, () => {
   console.log(`ReFasm API listening on ${port}`);
