@@ -119,6 +119,9 @@ app.get("/v1/urls/:url", async (req, res) => {
   }
 
   const item = await ShortenedUrlModel.findOne({ slug: req.params.url });
+  if (!item) {
+    return res.send({status:"ERROR", code:"Slug not found"})
+  }
   res.send({ ...item["_doc"] });
 });
 
