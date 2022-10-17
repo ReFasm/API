@@ -1,15 +1,13 @@
 {
-    "compilerOptions": {
-        "forceConsistentCasingInFileNames": true,
-        "module": "esnext",
-        "moduleResolution": "NodeNext",
-        "esModuleInterop": true,
-        "outDir": "./dist",
-        "target": "es2022",
-        "skipLibCheck": true,
-        "strict": false
-    },
-    "include": [
-        "src"
-    ]
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "target": "es2022",
+    "skipLibCheck": true,
+    "strict": false
+  },
+  "include": ["src"]
 }
