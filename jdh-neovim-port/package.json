@@ -1,0 +1,21 @@
+{
+  "name": "jdh-neovim-port",
+  "displayName": "jdh_neovim_port",
+  "description": "Porting of jdh .vimrc colors to Visual Studio Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.72.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Jdh Neovim",
+        "uiTheme": "vs-dark",
+        "path": "./themes/Jdh Neovim-color-theme.json"
+      }
+    ]
+  }
+}
