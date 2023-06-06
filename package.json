@@ -22,7 +22,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-rate-limit": "^6.6.0",
-    "mongoose": "^6.6.7"
+    "mongoose": "^6.11.1"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.2",
