@@ -182,7 +182,7 @@ app.patch("/v1/edit", async (req, res) => {
       slug: body.slug || resultUrl.slug,
       nsfw: body.nsfw || resultUrl.nsfw,
       password: body.password || resultUrl.password,
-    }
+    },
   );
 
   const updatedUrl = await ShortenedUrlModel.findOne({
